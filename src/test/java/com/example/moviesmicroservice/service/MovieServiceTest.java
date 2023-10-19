@@ -12,9 +12,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -38,11 +41,30 @@ public class MovieServiceTest {
         Page<Movie> moviesPage = new PageImpl<>(movies);
         when(movieRepository.findAll(any(Pageable.class))).thenReturn(moviesPage);
         MoviesResponse result = movieService.findAll(0, 10, "valid_token");
-        assertEquals
+        assertEquals(result.getTotalElements(), 2);
 
     }
 
+    @Test
+    void findValidMovie_ReturnsMovie(){
+        doNothing().when(jwtService).checkToken(anyString());
+        int movieId = 2;
+        Movie movie = Movie.builder().id(movieId).overview("good Movie").build();
+        when(movieRepository.findById(movieId)).thenReturn(Optional.of(movie));
+        Movie result = movieService.findById(movieId, "any string");
+        assertEquals(result, movie);
 
+    }
+
+    @Test
+    void findInvalidMovie_ThrowsException(){
+        doNothing().when(jwtService).checkToken(anyString());
+        int movieId = 2;
+        Movie movie = Movie.builder().id(movieId).overview("good Movie").build();
+        when(movieRepository.findById(movieId)).thenReturn(null);
+        assertThrows(RuntimeException.class, () -> movieService.findById(movieId, "any string"));
+
+    }
 
 
 }
