@@ -2,6 +2,7 @@ package com.example.moviesmicroservice.service;
 
 import com.example.moviesmicroservice.doa.MovieRepository;
 import com.example.moviesmicroservice.entity.Movie;
+import com.example.moviesmicroservice.exceptions.MovieNotFoundException;
 import com.example.moviesmicroservice.rest.MoviesResponse;
 import com.example.moviesmicroservice.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +34,14 @@ public class MovieServiceImpl implements MovieService{
     }
 
     @Override
-    public Movie findById(int id, String token) {
+    public Movie findById(int id, String token) throws MovieNotFoundException {
         jwtService.checkToken(token);
         Optional<Movie> result = movieRepository.findById(id);
         Movie curMovie = null;
         if(result.isPresent()) {
             curMovie = result.get();
         } else {
-            throw new RuntimeException("Didn't find this movie of id" + id);
+            throw new MovieNotFoundException("Didn't find this movie of id" + id);
         }
 
         return curMovie;

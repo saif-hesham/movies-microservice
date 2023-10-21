@@ -2,8 +2,10 @@ package com.example.moviesmicroservice.service;
 
 import com.example.moviesmicroservice.doa.MovieRepository;
 import com.example.moviesmicroservice.entity.Movie;
+import com.example.moviesmicroservice.exceptions.MovieNotFoundException;
 import com.example.moviesmicroservice.rest.MoviesResponse;
 import com.example.moviesmicroservice.security.JwtService;
+import jakarta.security.auth.message.AuthException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,14 +44,19 @@ public class MovieServiceTest {
         when(movieRepository.findAll(any(Pageable.class))).thenReturn(moviesPage);
         MoviesResponse result = movieService.findAll(0, 10, "valid_token");
         assertEquals(result.getTotalElements(), 2);
+        assertEquals(result.getPageSize(), 10);
+        assertEquals(result.getPageNo(), 0);
+        assertEquals(result.getTotalPages(), 1);
 
     }
 
     @Test
-    void findValidMovie_ReturnsMovie(){
+    void findValidMovie_ReturnsMovie() throws MovieNotFoundException {
         doNothing().when(jwtService).checkToken(anyString());
         int movieId = 2;
-        Movie movie = Movie.builder().id(movieId).overview("good Movie").build();
+        Movie movie = Movie.builder().id(movieId).vote_average(9)
+                .original_title("good movie")
+                .overview("good Movie").build();
         when(movieRepository.findById(movieId)).thenReturn(Optional.of(movie));
         Movie result = movieService.findById(movieId, "any string");
         assertEquals(result, movie);
@@ -59,10 +66,8 @@ public class MovieServiceTest {
     @Test
     void findInvalidMovie_ThrowsException(){
         doNothing().when(jwtService).checkToken(anyString());
-        int movieId = 2;
-        Movie movie = Movie.builder().id(movieId).overview("good Movie").build();
-        when(movieRepository.findById(movieId)).thenReturn(null);
-        assertThrows(RuntimeException.class, () -> movieService.findById(movieId, "any string"));
+        when(movieRepository.findById(any(int.class))).thenReturn(Optional.empty());
+        assertThrows(MovieNotFoundException.class, () -> movieService.findById(9, "any string"));
 
     }
 

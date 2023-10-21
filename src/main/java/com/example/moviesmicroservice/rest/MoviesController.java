@@ -1,6 +1,7 @@
 package com.example.moviesmicroservice.rest;
 
 import com.example.moviesmicroservice.entity.Movie;
+import com.example.moviesmicroservice.exceptions.MovieNotFoundException;
 import com.example.moviesmicroservice.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class MoviesController {
     public Movie getMovie(
             @RequestHeader(name = "Authorization", required = false) String token,
             @PathVariable int movieId
-    ) {
+    ) throws MovieNotFoundException {
         return movieService.findById(movieId, token);
     }
 
